@@ -239,3 +239,45 @@ Private Function ExportDataToEXCEL(Optional MsgBox As String) As Boolean
 
     ExportDataToEXCEL = bExport
 End Function
+
+
+Public Function ExportZapisDancyDoPlikuCSV(Optional MsgBox As String) As Boolean
+    Dim bExport As Boolean
+    
+    If m_ExportedRst Is Nothing Then Exit Function
+    If m_ExportedRst.RecordCount = 0 Then Exit Function
+    
+    '--- export do csv --- --- --- --- --- --- --- --- --- ---
+    'TO DO
+    '--- ------------- --- --- --- --- --- --- --- --- --- ---
+    
+    ExportZapisDancyDoPlikuCSV bExport
+End Function
+
+Public Function ExportZapisDancyDoPlikuXLS(Optional MsgBox As String) As Boolean
+    Dim bExport As Boolean
+    
+    If m_ExportedRst Is Nothing Then Exit Function
+    If m_ExportedRst.RecordCount = 0 Then Exit Function
+    
+    '--- export do xls --- --- --- --- --- --- --- --- --- ---
+    'TO DO
+    '--- ------------- --- --- --- --- --- --- --- --- --- ---
+    
+    ExportZapisDancyDoPlikuXLS bExport
+End Function
+
+                                                                                    
+Public Function ExportZapisDancyDoPlikuXLSX(Optional MsgBox As String) As Boolean
+    Dim bExport As Boolean
+    
+    If m_ExportedRst Is Nothing Then Exit Function
+    If m_ExportedRst.RecordCount = 0 Then Exit Function
+    
+    '--- export do xlsx -- --- --- --- --- --- --- --- --- ---
+    'TO DO
+    '--- ------------- --- --- --- --- --- --- --- --- --- ---
+    
+    ExportZapisDancyDoPlikuXLSX bExport
+End Function
+                                                                    
