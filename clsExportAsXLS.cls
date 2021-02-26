@@ -1,6 +1,20 @@
+'---------------------------------------------------------------------------------------
+' Class Module  : clsExportAsXLS
+' Author        : paweld
+' Purpose       : A class that facilitates data export to xls
+'                 - TO DO - dowolnego SQL'a
+'                 - TO DO - dowolnego Rst
+' Licence       : Free
+'
+'---------------------------------------------------------------------------------------
+' Changes       :
+'---------------------------------------------------------------------------------------
+' 2019-01-17 , paweld : Creating
+'---------------------------------------------------------------------------------------
 Option Compare Database
 Option Explicit
 
+Private Const m_wersja = "1.2"
 Private Const CurrentModuleName = "clsExportAsXLS"
 
 Private m_CallingModuleName As String
@@ -22,9 +36,8 @@ Private m_MsgBox As String
 
 Public Event AfterExport(sMsgBoxPrompt As String, bDaneZostalyWyexportowane As Boolean)
 
-Private Const m_wersja = "1.2"
-
 Private Sub Class_Initialize()
+'Constructor
     m_FilePath = Application.CurrentProject.Path
     m_FilePrefix = "Export_"
     m_FileSufix = GetDateTiemString
@@ -33,6 +46,10 @@ Private Sub Class_Initialize()
     m_RptTitle = "Export Data"
     
     Call SetFullPathAndFileName
+End Sub
+
+Private Sub Class_Terminate()
+'Destructor
 End Sub
 
 Private Function GetDateTiemString() As String
@@ -194,10 +211,33 @@ Private Function DataVerification(Optional MsgBox As String) As Boolean
 End Function
                   
 Private Function OpenExportedSQL(Rst As Recordset, Sql As String) As Boolean
-                    'TO DO - open Rst with SQL 
+    OpenExportedSQL = OpenRst(Rst, Sql)
 End Function
                   
 Private Function ExportDataToEXCEL(Optional MsgBox As String) As Boolean
+    Call ExportAndSaveDataToFileXLS(MsgBox)
+    
+    'Call ExportAndSaveDataToFileCSV(MsgBox)
+    'Call ExportAndSaveDataToFileXLSX(MsgBox)
+                                        
+    ExportDataToEXCEL = bExport
+End Function
+
+
+Public Function ExportAndSaveDataToFileCSV(Optional MsgBox As String) As Boolean
+    Dim bExport As Boolean
+    
+    If m_ExportedRst Is Nothing Then Exit Function
+    If m_ExportedRst.RecordCount = 0 Then Exit Function
+    
+    '--- export do csv --- --- --- --- --- --- --- --- --- ---
+    'TO DO
+    '--- ------------- --- --- --- --- --- --- --- --- --- ---
+    
+    ExportAndSaveDataToFileCSV = bExport
+End Function
+
+Public Function ExportAndSaveDataToFileXLS(Optional MsgBox As String) As Boolean
     Dim bExport As Boolean
     If m_ExportedRst Is Nothing Then Exit Function
     If m_ExportedRst.RecordCount = 0 Then Exit Function
@@ -235,40 +275,14 @@ Private Function ExportDataToEXCEL(Optional MsgBox As String) As Boolean
          Set oApp = Nothing
          bExport = True
     End If
-    '--- ------------- --- --- --- --- --- --- --- --- --- ---
-
-    ExportDataToEXCEL = bExport
-End Function
-
-
-Public Function ExportZapisDancyDoPlikuCSV(Optional MsgBox As String) As Boolean
-    Dim bExport As Boolean
-    
-    If m_ExportedRst Is Nothing Then Exit Function
-    If m_ExportedRst.RecordCount = 0 Then Exit Function
-    
-    '--- export do csv --- --- --- --- --- --- --- --- --- ---
-    'TO DO
+    bExport = True
     '--- ------------- --- --- --- --- --- --- --- --- --- ---
     
-    ExportZapisDancyDoPlikuCSV bExport
-End Function
-
-Public Function ExportZapisDancyDoPlikuXLS(Optional MsgBox As String) As Boolean
-    Dim bExport As Boolean
-    
-    If m_ExportedRst Is Nothing Then Exit Function
-    If m_ExportedRst.RecordCount = 0 Then Exit Function
-    
-    '--- export do xls --- --- --- --- --- --- --- --- --- ---
-    'TO DO
-    '--- ------------- --- --- --- --- --- --- --- --- --- ---
-    
-    ExportZapisDancyDoPlikuXLS bExport
+    ExportAndSaveDataToFileXLS = bExport
 End Function
 
                                                                                     
-Public Function ExportZapisDancyDoPlikuXLSX(Optional MsgBox As String) As Boolean
+Public Function ExportAndSaveDataToFileXLSX(Optional MsgBox As String) As Boolean
     Dim bExport As Boolean
     
     If m_ExportedRst Is Nothing Then Exit Function
@@ -278,6 +292,6 @@ Public Function ExportZapisDancyDoPlikuXLSX(Optional MsgBox As String) As Boolea
     'TO DO
     '--- ------------- --- --- --- --- --- --- --- --- --- ---
     
-    ExportZapisDancyDoPlikuXLSX bExport
+    ExportAndSaveDataToFileXLSX = bExport
 End Function
                                                                     
