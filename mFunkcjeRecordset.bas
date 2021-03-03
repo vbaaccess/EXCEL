@@ -1,7 +1,7 @@
 Option Compare Database
 Option Explicit
 
-Private Const CurrentModName = "mFunkcjeRecordset"
+Private Const CurrentModuleName = "mFunkcjeRecordset"
 
 Public Function OpenRst(ByRef Rst As ADODB.Recordset, ByVal Sql As String , Optional SqlTimeout As Long = 0 ) As Boolean
     Set Rst = New ADODB.Recordset
