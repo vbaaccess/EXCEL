@@ -226,14 +226,43 @@ End Function
 
 Public Function ExportAndSaveDataToFileCSV(Optional MsgBox As String) As Boolean
     Dim bExport As Boolean
-    
+
     If m_ExportedRst Is Nothing Then Exit Function
     If m_ExportedRst.RecordCount = 0 Then Exit Function
     
-    '--- export do csv --- --- --- --- --- --- --- --- --- ---
-    'TO DO
-    '--- ------------- --- --- --- --- --- --- --- --- --- ---
+    '--- export to csv --- --- --- --- --- --- --- --- --- ---
+    Dim strRow As String
+    Dim strHead As String
+    Dim hFile As Long
+    Dim i%
     
+    hFile = FreeFile
+    Open m_FullPathAndFileName For Binary As #hFile
+    
+    With m_ExportedRst
+
+        Put #hFile, , RptTitle & vbCrLf
+        For i = 0 To .Fields.Count - 1
+            strHead = strHead & ";" & .Fields(i).Name
+        Next i
+        Put #hFile, , Mid(strHead, 2) & vbCrLf
+    
+        .MoveFirst
+        While Not .EOF
+        
+            strRow = vbCrLf
+            For i = 0 To .Fields.Count - 1
+                strRow = strRow & ";" & .Fields(i)
+            Next i
+
+            Put #hFile, , Mid(strRow, 2)
+            .MoveNext
+        Wend
+
+        Close #hFile
+        bExport = True
+    End With
+
     ExportAndSaveDataToFileCSV = bExport
 End Function
 
