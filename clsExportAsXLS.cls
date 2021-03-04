@@ -17,6 +17,9 @@ Option Explicit
 Private Const m_wersja = "1.2"
 Private Const CurrentModuleName = "clsExportAsXLS"
 
+Private Const fExportToXlsMsgBoxPrompt_FormName = "fExportAsXLS"
+'Private m_ShowSettingWIndow As Boolean ' TO DO -
+
 Private m_CallingModuleName As String
 
 Private m_FilePath As String
@@ -60,6 +63,26 @@ Public Sub INIT(CallingModuleName As String, Optional FilePath As String, Option
     m_CallingModuleName = CallingModuleName
     Call SetFullPathAndFileName
 End Sub
+
+Public Function ExportShowSettingForm(Optional MsgBox As String) As Boolean
+    
+    If IsLoaded(fExportToXlsMsgBoxPrompt_FormName) Then
+        'do noting
+    Else
+        
+        m_FileSufix = GetDateTiemString
+        
+        Access.DoCmd.OpenForm fExportToXlsMsgBoxPrompt_FormName, , , , , , CStr(objHandle)
+        
+        Dim objForm As Form
+        Set objForm = Application.Forms(fExportToXlsMsgBoxPrompt_FormName).Form
+    
+        ShowWindow objForm.hWnd, 8
+        objForm.SetFocus
+    
+    End If
+
+End Function
 
 Public Function Export(Optional MsgBox As String) As Boolean
     Dim bWeryfikacja As Boolean
@@ -215,11 +238,39 @@ Private Function OpenExportedSQL(Rst As Recordset, Sql As String) As Boolean
 End Function
                   
 Private Function ExportDataToEXCEL(Optional MsgBox As String) As Boolean
-    Call ExportAndSaveDataToFileXLS(MsgBox)
+    Dim bExport As Boolean
+    Dim bWeryfikacja As Boolean
     
-    'Call ExportAndSaveDataToFileCSV(MsgBox)
-    'Call ExportAndSaveDataToFileXLSX(MsgBox)
-                                        
+    m_FileExtension = Nz(Choose(werPliku, "csv", "xls", "xlsx"), "xls")
+    
+    bWeryfikacja = VerificationOfSetting(MsgBox)
+    
+    If bWeryfikacja Then
+        bWeryfikacja = DataVerification(MsgBox)
+    End If
+    
+    If bWeryfikacja Then
+        Select Case m_FileExtension
+        Case "csv"
+            bExport = ExportAndSaveDataToFileCSV(MsgBox)
+        Case "xls"
+            bExport = ExportAndSaveDataToFileXLS(MsgBox)
+        Case "xlsx"
+            bExport = ExportAndSaveDataToFileXLSX(MsgBox)
+        End Select
+    End If
+    
+    Dim sM$
+    If bExport Then
+        sM = "The file has been created " & vbLf & vbLf & m_FilePath & vbLf & m_FilePrefix & m_FileSufix & "." & m_FileExtension
+    Else
+        sM = "The file could not be created" & vbLf & vbLf & m_FilePath & vbLf & m_FilePrefix & m_FileSufix & "." & m_FileExtension
+    End If
+    
+    VBA.MsgBox sM, vbInformation + vbOKOnly, "Export to EXCEL"
+    
+    RaiseEvent AfterExport(MsgBox, bExport)
+    
     ExportDataToEXCEL = bExport
 End Function
 
