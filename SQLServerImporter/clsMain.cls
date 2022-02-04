@@ -1,7 +1,17 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "clsMain"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
 Option Explicit
 
 Private Const CurrentModuleName = "clsMain"
 Public Settings As clsSettings
+Attribute Settings.VB_VarHelpID = -1
 
 Private Sub Class_Initialize()
     'Constructor
@@ -31,6 +41,9 @@ Err_SUB:
     ErrNumber = Err.Number
     ErrDescription = Err.Description
     Select Case ErrNumber
+'    Case NrBledu
+'        Debug.Print "(" & ErrNumber  & ") - " & ModuleName & "." & SubName
+
     Case Else
         VBA.MsgBox "(" & ErrNumber & IIf(Erl = 0, "", "," & Erl) & ") " & _
                "- " & CurrentModuleName & "." & SubName & vbLf & _
@@ -41,127 +54,110 @@ Err_SUB:
 End Sub
 
 Private Sub ImportProcedures()
+    Dim wks As Worksheet
     Dim Rst As Recordset
     Dim Sql As String
     
+    Dim SqlG As New clsSQL
 
-    Sql = GenerateSQL
+    Sql = SqlG.GenerateSQL()
     
     If OpenRst(Rst, Sql) Then
         Debug.Print "Rst.RecordCount => " & CStr(Rst.RecordCount)
+
+        Set wks = SpecifyTheSheet()
         
-        Rst.MoveLast
-        
-        Call ImportRecordsHeaders(Rst)
-        Call ImportRecordsData(Rst)
+        Call ImportRecordsHeaders(Rst, wks)
+        Call ImportRecordsData(Rst, wks)
         
     End If
     
     Call rstSetNothing(Rst)
 End Sub
 
-Private Function GenerateSQL() As String
-    Dim Sql As String
-    Dim SqlW As String
-    Dim iDataSampleSize As Long
-    Dim sDataSampleSize As String
-    
-    iDataSampleSize = xls.Settings.DataSampleSize
-    If iDataSampleSize > 0 Then
-        sDataSampleSize = "TOP " & iDataSampleSize
-    End If
-    
-    Dim vD As Variant
-    Call xls.Settings.ReadWhereVariable
-    
-    '-- 1 --
-    vD = Null
-    vD = xls.Settings.WhereFromDate
-    
-    If IsDate(vD) Then
-        SqlW = SqlW & " AND "
-    End If
-    
-    '-- 2 --
-    vD = Null
-    vD = xls.Settings.WhereToDate
-    
-    If IsDate(vD) Then
-        SqlW = SqlW & " AND "
-    End If
-    
-    If Len(SqlW) > 0 Then
-        SqlW = "WHERE" & Mid(SqlW, 4)
-    End If
-    
-    Sql = "SELECT @SQL_TOP_SQL * FROM vForXLS @WhereCondytion"
-    
-    Sql = Replace(Sql, "@SQL_TOP_SQL", sDataSampleSize)
-    Sql = Replace(Sql, "@WhereCondytion", SqlW)
-    
-    GenerateSQL = Sql
-End Function
-
-Private Function SpecifyTheSheet(Rst As Recordset) As Worksheet
+Private Function SpecifyTheSheet() As Worksheet
+    Dim f$, s$  ' file name, sheet
     Dim wb As Workbook
     Dim wks As Worksheet
     
+    '-- 1 --- set Workbook
+    f = xls.Settings.TargetFileName
+    If Len(Trim(f)) > 0 Then
+        Set wb = SetWorkbooks(f)
+    End If
+    
+    If wb Is Nothing Then Set wb = ThisWorkbook
+    
+    '-- 2 --- set WorkSheet
+    s = xls.Settings.TargetSheets
+    Set wks = wb.Worksheets(s)
+    
+    Set SpecifyTheSheet = wks
 End Function
 
-Private Sub ImportRecordsHeaders(Rst As Recordset)
-        
-        Rst.MoveFirst
-        Dim fld
-        Dim SheetName$
-        SheetName = xls.Settings.TargetSheets
-            
-        Dim cLp As Long
-        Dim rLp As Long
-        Dim posX As Long
-        Dim posY As Long
-        
-        Dim shift_x As Long
-        Dim shift_y As Long
-        
-        shift_x = xls.Settings.SheetsPositionsX
-        shift_y = xls.Settings.SheetsPositionsY
-        If shift_x > 0 Then shift_x = shift_x - 1
-        If shift_y > 0 Then shift_y = shift_y - 1
-        
-        rLp = 1
-        
-        
-        
-        For cLp = 0 To Rst.Fields.Count - 1
-            posX = cLp + 1 + shift_x
-            posY = rLp + shift_y
-            
-            
-            Sheets(SheetName).Cells(posY, posX) = Rst.Fields(cLp).Name
-            Sheets(SheetName).Cells(posY, posX).Font.Bold = True
-            
-            ThisWorkbook.Sheets(SheetName).Cells(posY, posX) = Rst.Fields(cLp).Name
-            ThisWorkbook.Sheets(SheetName).Cells(posY, posX).Font.Bold = True
-        Next cLp
-        
-        Do While Not Rst.EOF
-            rLp = rLp + 1
-            cLp = 0
-            For Each fld In Rst.Fields
-                cLp = cLp + 1
-                posX = cLp + shift_x
-                posY = rLp + shift_y
-                ThisWorkbook.Sheets(SheetName).Cells(posY, posX) = fld
-                If IsDate(fld) Then
-                    ThisWorkbook.Sheets(SheetName).Cells(posY, posX).NumberFormat = "m/d/yyyy"
-                End If
-            Next
-            Rst.MoveNext
-        Loop
+Private Function SetWorkbooks(FileName As String) As Workbook
+On Error Resume Next
+    Set SetWorkbooks = Workbooks(FileName)
+End Function
+
+Private Sub InitShift(x As Long, y As Long)
+    x = xls.Settings.SheetsPositionsX
+    y = xls.Settings.SheetsPositionsY
+    If x > 0 Then x = x - 1
+    If y > 0 Then y = y - 1
 End Sub
 
-Private Sub ImportRecordsData(Rst As Recordset)
+Private Sub ImportRecordsHeaders(Rst As Recordset, wks As Worksheet)
+    Dim cLp As Long
+    
+    Dim shift_x As Long
+    Dim shift_y As Long
+    
+    Call InitShift(shift_x, shift_y)
+        
+    Dim posX As Long
+    Dim posY As Long
+        
+    posY = 1 + shift_y
+    
+    For cLp = 0 To Rst.Fields.Count - 1
+        posX = cLp + 1 + shift_x
+        wks.Cells(posY, posX) = Rst.Fields(cLp).Name
+        wks.Cells(posY, posX).Font.Bold = True
+    Next cLp
+
+End Sub
+
+Private Sub ImportRecordsData(Rst As Recordset, wks As Worksheet)
+    Dim cLp As Long
+    Dim fld
+            
+    Dim shift_x As Long
+    Dim shift_y As Long
+    
+    Call InitShift(shift_x, shift_y)
+        
+    Dim posX As Long
+    Dim posY As Long
+    
+    posY = 1 + shift_y
+    posX = shift_x
     Rst.MoveFirst
+        
+    Do While Not Rst.EOF
+        posY = posY + 1
+        posX = shift_x
+
+        For Each fld In Rst.Fields
+            posX = posX + 1
+            wks.Cells(posY, posX) = fld
+            If IsDate(fld) Then
+                wks.Cells(posY, posX).NumberFormat = "m/d/yyyy"
+            End If
+        Next
+        Rst.MoveNext
+    Loop
+
 End Sub
 
 
@@ -180,7 +176,7 @@ Private Function ActiveConnection() As Connection
     Set ActiveConnection = conn
 End Function
 
-Private Function OpenRst(ByRef Rst As ADODB.Recordset, ByVal Sql As String) As Boolean   
+Private Function OpenRst(ByRef Rst As ADODB.Recordset, ByVal Sql As String) As Boolean
     Dim conn As ADODB.Connection
     
     Set conn = ActiveConnection

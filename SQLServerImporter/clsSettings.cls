@@ -1,3 +1,12 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "clsSettings"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
 Option Explicit
 
 Private Const CurrentModuleName = "clsSettings"
@@ -16,11 +25,12 @@ Private Enum Cfg
     Svr = 6
     'InitialCatalog = 7
     dbName = 7
-    'TargetSheets = 9
-    SettingsSheets = 9
-    SettingsSheetsPositionX = 10
-    SettingsSheetsPositionY = 11
-    SampleSize = 14
+    TargetFile = 9
+    'TargetSheets = 10
+    SettingsSheets = 10
+    SettingsSheetsPositionX = 11
+    SettingsSheetsPositionY = 12
+    SampleSize = 15
 End Enum
 
 Private m_Authentication As Single
@@ -30,18 +40,21 @@ Private m_PWD As String
 Private m_Server As String
 Private m_InitialCatalog As String
 
+Private m_TargetFile As String
 Private m_TargetSheets As String
 Private m_TargetPositionX As Long
 Private m_TargetPositionY As Long
 
 Private m_DataSampleSize As Long
 
+Private m_WhereCompany As Variant
 Private m_FromDate As Variant
 Private m_ToDate As Variant
 
 Private Sub Class_Initialize()
     Debug.Print "Initialize object clas: " & CurrentModuleName
     
+    m_WhereCompany = Null
     m_FromDate = Null
     m_ToDate = Null
     
@@ -51,7 +64,9 @@ End Sub
 
 Public Sub RefreshSettings()
         'xls
+        m_TargetFile = GetSetting(TargetFile)
         m_TargetSheets = GetSetting(SettingsSheets)
+        
         m_TargetPositionX = GetSetting(SettingsSheetsPositionX)
         m_TargetPositionY = GetSetting(SettingsSheetsPositionY)
         
@@ -73,6 +88,14 @@ Public Sub ReadWhereVariable()
     
     With ThisWorkbook.Sheets(m_InstructionSheetsName)
         vD = Null
+        vD = .Cells(9, m_CfgColumn).Value
+        If Not IsNull(vD) Then
+            If Len(Trim(CStr(vD))) > 0 Then
+                m_WhereCompany = vD
+            End If
+        End If
+        
+        vD = Null
         vD = .Cells(10, m_CfgColumn).Value
         If IsDate(vD) Then
             m_FromDate = vD
@@ -83,7 +106,7 @@ Public Sub ReadWhereVariable()
         If IsDate(vD) Then
             m_ToDate = vD
         End If
-        
+
     End With
 End Sub
 
@@ -182,6 +205,17 @@ Public Property Let InitialCatalog(NewInitialCatalog As String)
     m_InitialCatalog = NewInitialCatalog
 End Property
 
+Public Property Get TargetFileName() As String
+    TargetFileName = m_TargetFile
+End Property
+
+Public Property Let TargetFileName(NewTargetFile As String)
+    If NewTargetFile <> m_TargetFile Then _
+        Call SetSetting(TargetFile, NewTargetFile)
+        
+    m_TargetFile = NewTargetFile
+End Property
+
 Public Property Get TargetSheets() As String
     TargetSheets = m_TargetSheets
 End Property
@@ -193,22 +227,22 @@ Public Property Let TargetSheets(NewTargetSheets As String)
     m_TargetSheets = NewTargetSheets
 End Property
 
-Public Property Get SheetsPositionsX() As String
+Public Property Get SheetsPositionsX() As Long
     SheetsPositionsX = m_TargetPositionX
 End Property
 
-Public Property Let SheetsPositionsX(NewPositionX As String)
+Public Property Let SheetsPositionsX(NewPositionX As Long)
     If NewPositionX <> m_TargetPositionX Then _
         Call SetSetting(SettingsSheetsPositionX, NewPositionX)
         
     m_TargetPositionX = NewPositionX
 End Property
 
-Public Property Get SheetsPositionsY() As String
+Public Property Get SheetsPositionsY() As Long
     SheetsPositionsY = m_TargetPositionY
 End Property
 
-Public Property Let SheetsPositionsY(NewPositionY As String)
+Public Property Let SheetsPositionsY(NewPositionY As Long)
     If NewPositionY <> m_TargetPositionY Then _
         Call SetSetting(SettingsSheetsPositionY, NewPositionY)
         
@@ -225,6 +259,11 @@ Public Property Let DataSampleSize(NewSampleSize As Long)
         
     m_DataSampleSize = NewSampleSize
 End Property
+
+Public Property Get WhereCompany() As Variant
+    WhereCompany = m_WhereCompany
+End Property
+
 
 Public Property Get WhereFromDate() As Variant
     WhereFromDate = m_FromDate
