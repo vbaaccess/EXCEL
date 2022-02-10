@@ -15,7 +15,6 @@ Private Const m_InstructionSheetsName = "Instrukcja"
 
 Private Const m_CfgColumn = 2
 
-'Public Type
 Private Enum Cfg
     'Authentication = 2
     Auth = 2
@@ -47,19 +46,20 @@ Private m_TargetPositionY As Long
 
 Private m_DataSampleSize As Long
 
-Private m_WhereCompany As Variant
-Private m_FromDate As Variant
-Private m_ToDate As Variant
+'Private m_WhereCompany As Variant
+'Private m_FromDate As Variant
+'Private m_ToDate As Variant
+
+Public DataConditions As clsDataConditions
 
 Private Sub Class_Initialize()
+    'Constructor
     Debug.Print "Initialize object clas: " & CurrentModuleName
     
-    m_WhereCompany = Null
-    m_FromDate = Null
-    m_ToDate = Null
-    
     Call RefreshSettings
-
+    
+    If DataConditions Is Nothing Then Set DataConditions = New clsDataConditions
+    Set DataConditions = DataConditions
 End Sub
 
 Public Sub RefreshSettings()
@@ -80,34 +80,6 @@ Public Sub RefreshSettings()
         
         'import
         m_DataSampleSize = GetSetting(SampleSize)
-        Call ReadWhereVariable
-End Sub
-
-Public Sub ReadWhereVariable()
-    Dim vD As Variant
-    
-    With ThisWorkbook.Sheets(m_InstructionSheetsName)
-        vD = Null
-        vD = .Cells(9, m_CfgColumn).Value
-        If Not IsNull(vD) Then
-            If Len(Trim(CStr(vD))) > 0 Then
-                m_WhereCompany = vD
-            End If
-        End If
-        
-        vD = Null
-        vD = .Cells(10, m_CfgColumn).Value
-        If IsDate(vD) Then
-            m_FromDate = vD
-        End If
-        
-        vD = Null
-        vD = .Cells(11, m_CfgColumn).Value
-        If IsDate(vD) Then
-            m_ToDate = vD
-        End If
-
-    End With
 End Sub
 
 Private Function GetSetting(cell As Cfg) As Variant
@@ -258,17 +230,4 @@ Public Property Let DataSampleSize(NewSampleSize As Long)
         Call SetSetting(SampleSize, NewSampleSize)
         
     m_DataSampleSize = NewSampleSize
-End Property
-
-Public Property Get WhereCompany() As Variant
-    WhereCompany = m_WhereCompany
-End Property
-
-
-Public Property Get WhereFromDate() As Variant
-    WhereFromDate = m_FromDate
-End Property
-
-Public Property Get WhereToDate() As Variant
-    WhereToDate = m_ToDate
 End Property
