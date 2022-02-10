@@ -10,7 +10,6 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Const CurrentModuleName = "clsSQL"
-Private fu As New clsHelper
 
 Public Function GenerateSQL() As String
     Dim Sql As String
@@ -62,42 +61,20 @@ End Function
 Private Function SQL_WHERE() As String
     
     Dim SqlW As String
+    Dim d As Dictionary
     
-    Dim vD As Variant
-    Dim sD$
-    Call xls.Settings.ReadWhereVariable
     
-    '-- 1 --
-    vD = Null
-    vD = xls.Settings.WhereCompany
+    Set d = xls.Settings.DataConditions.ReadTheData()
     
-    If Not IsNull(vD) Then
-        If Len(Trim(CStr(vD))) > 0 Then
-            sD = fu.KillSQLInjection(CStr(vD))
-            SqlW = SqlW & " AND Kod = '" & CStr(sD) & "'"
-        End If
-    End If
+    Dim v
     
-    '-- 2 --
-    vD = Null
-    vD = xls.Settings.WhereFromDate
-    
-    If IsDate(vD) Then
-        sD = fu.KillSQLInjection(CStr(vD))
-        SqlW = SqlW & " AND OkresFrom >= convert(DATETIME,'" & sD & " 00:00:00.000',120)"
-    End If
-    
-    '-- 3 --
-    vD = Null
-    vD = xls.Settings.WhereToDate
-    
-    If IsDate(vD) Then
-        sD = fu.KillSQLInjection(CStr(vD))
-        SqlW = SqlW & " AND OkresFrom <= convert(DATETIME,'" & sD & " 23:59:59.999',120)"
-    End If
+    For Each v In d
+        SqlW = SqlW & d(CStr(v))
+    Next v
     
     If Len(SqlW) > 0 Then
         SqlW = "WHERE" & Mid(SqlW, 5)
+        Debug.Print SqlW
     End If
     
     SQL_WHERE = SqlW
