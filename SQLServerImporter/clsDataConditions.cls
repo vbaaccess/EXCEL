@@ -66,13 +66,14 @@ Private Function ConditionSqlData(sheet As Worksheet, row As Long, column As Lon
     If IsDate(sheet.Cells(row, column + 1).Value) Then
         vFrom = sheet.Cells(row, column + 1).Value
         sD = fu.KillSQLInjection(FormatDateTime(CDate(vFrom), vbShortDate))
+        sD = Year(CDate(Now)) & "-" & Right("0" & Month(CDate(Now)), 2) & "-" & Right("0" & Day(CDate(Now)), 2)
         Sql = Sql & " AND " & FieldName & " >= convert(DATETIME,'" & sD & " 00:00:00.000',120)"
     End If
     
     If IsDate(sheet.Cells(row, column + 2).Value) Then
         vTo = sheet.Cells(row, column + 2).Value
         sD = fu.KillSQLInjection(FormatDateTime(CDate(vTo), vbShortDate))
-       'Sql = Sql & " AND " & FieldName & " <= convert(DATETIME,'" & sD & " 23:59:59.999',120)"
+        sD = Year(CDate(Now)) & "-" & Right("0" & Month(CDate(Now)), 2) & "-" & Right("0" & Day(CDate(Now)), 2)
         Sql = Sql & " AND (" & FieldName & " <= convert(DATETIME,'" & sD & " 23:59:59.999',120)"
         Sql = Sql & " OR " & FieldName & " Is Null)"
     End If
